@@ -1,0 +1,16 @@
+blacklist.txt
+comments.txt
+followed.txt
+friends.txt
+skipped.txt
+unfollowed.txt
+whitelist.txt
+
+*.yaml
+*.checkpoint
+*.json
+
+log/
+out/
+venv/
+.idea/
