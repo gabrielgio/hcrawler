@@ -6,7 +6,7 @@ from instabot import Bot
 from time import sleep
 import argparse
 import random
-
+import json
 from instabot.bot.bot_get import get_user_id_from_username
 
 bot = Bot()
@@ -68,8 +68,8 @@ def feed(username: str, out: Any):
     following = get_user_following(username)
     for user in following:
         user_feed = get_user_feed(user['pk'])
-        out(str({"info": user,
-                 "feed": user_feed}))
+        out(json.dumps({"info": user,
+                        "feed": user_feed}))
 
 
 def wrap_rabbit_out(hostname: str):
