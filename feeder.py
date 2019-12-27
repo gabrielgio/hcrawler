@@ -57,7 +57,7 @@ def write_out_user_feed(user_id: str, user, out) -> List:
 
         user_feed_items += partial_feed['items']
 
-        for item in user_feed_items:
+        for item in partial_feed['items']:
             out(json.dumps({"user": user,
                             "post": item}))
 
