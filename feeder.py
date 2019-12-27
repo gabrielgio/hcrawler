@@ -44,7 +44,7 @@ def get_user_following(username: str, next_max_id=None) -> List:
         return users + get_user_following(username, partial_feed['next_max_id'])
 
 
-def get_user_feed(user_id: str) -> List:
+def write_out_user_feed(user_id: str, user, out) -> List:
     user_feed_items: List = []
     next_max_id = ""
     while True:
@@ -57,6 +57,10 @@ def get_user_feed(user_id: str) -> List:
 
         user_feed_items += partial_feed['items']
 
+        for item in user_feed_items:
+            out(json.dumps({"user": user,
+                            "post": item}))
+
         if partial_feed.get('next_max_id', None) is None:
             return user_feed_items
         else:
@@ -67,9 +71,7 @@ def get_user_feed(user_id: str) -> List:
 def feed(username: str, out: Any):
     following = get_user_following(username)
     for user in following:
-        user_feed = get_user_feed(user['pk'])
-        out(json.dumps({"info": user,
-                        "feed": user_feed}))
+        write_out_user_feed(user['pk'], user, out)
 
 
 def wrap_rabbit_out(hostname: str):
