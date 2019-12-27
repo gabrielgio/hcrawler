@@ -89,13 +89,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     username = args.username
     password = args.password
-    habbit_host = args.rabbit
+
+    out = wrap_rabbit_out(args.rabbit)
 
     login(username, password)
     while True:
         sleep_a_little()
         try:
-            feed(args.username, wrap_rabbit_out(habbit_host))
+            feed(args.username, out)
         except Exception as ex:
             print("Exception!", ex)
             continue
