@@ -7,6 +7,7 @@ from time import sleep
 import argparse
 import random
 import json
+import logging
 from instabot.bot.bot_get import get_user_id_from_username
 
 bot = Bot()
@@ -14,6 +15,8 @@ parser = argparse.ArgumentParser(description="Download videos and photos for all
 parser.add_argument('-u', '--username', help="Account username", default=os.environ.get('USERNAME', None))
 parser.add_argument('-p', '--password', help="Account password", default=os.environ.get('PASSWORD', None))
 parser.add_argument('-r', '--rabbit', help="Rabbit host name", default=os.environ.get('RABBIT_HOST', 'localhost'))
+
+logging.basicConfig(filename='out/app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def sleep_a_little():
@@ -88,17 +91,17 @@ def wrap_rabbit_out(hostname: str):
 
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    username = args.username
-    password = args.password
+    try:
+        args = parser.parse_args()
+        username = args.username
+        password = args.password
 
-    out = wrap_rabbit_out(args.rabbit)
+        out = wrap_rabbit_out(args.rabbit)
 
-    login(username, password)
-    while True:
-        sleep_a_little()
-        try:
+        login(username, password)
+        while True:
+            sleep_a_little()
             feed(args.username, out)
-        except Exception as ex:
-            print("Exception!", ex)
-            continue
+
+    except Exception as e:
+        logging.exception("An main error ocurred")
