@@ -19,8 +19,30 @@ parser.add_argument('-r', '--rabbit', help="Rabbit host name", default=os.enviro
 logging.basicConfig(filename='out/app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
 
 
+class RabbitUnitOfWor:
+
+    def __init__(self, host: str):
+        self._host = host
+
+    def start(self):
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(self._host))
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue='instagram')
+
+    def finish(self):
+        self.connection.close()
+
+    def out(self, data: str):
+        self.channel.basic_publish(exchange='',
+                                   routing_key='instagram',
+                                   body=data)
+
+
 def sleep_a_little():
-    sleep(random.randint(21, 30))
+    sleep(random.randint(25, 35))
+
+
+Rabbit: RabbitUnitOfWor = None
 
 
 def login(username: str, password: str):
@@ -47,7 +69,7 @@ def get_user_following(username: str, next_max_id=None) -> List:
         return users + get_user_following(username, partial_feed['next_max_id'])
 
 
-def write_out_user_feed(user_id: str, user, out) -> List:
+def write_out_user_feed(user_id: str, user) -> List:
     user_feed_items: List = []
     next_max_id = ""
     while True:
@@ -60,9 +82,11 @@ def write_out_user_feed(user_id: str, user, out) -> List:
 
         user_feed_items += partial_feed['items']
 
+        Rabbit.start()
         for item in partial_feed['items']:
-            out(json.dumps({"user": user,
-                            "post": item}))
+            Rabbit.out(json.dumps({"user": user,
+                                   "post": item}))
+        Rabbit.finish()
 
         if partial_feed.get('next_max_id', None) is None:
             return user_feed_items
@@ -71,23 +95,10 @@ def write_out_user_feed(user_id: str, user, out) -> List:
             continue
 
 
-def feed(username: str, out: Any):
+def feed(username: str):
     following = get_user_following(username)
     for user in following:
-        write_out_user_feed(user['pk'], user, out)
-
-
-def wrap_rabbit_out(hostname: str):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(hostname))
-    channel = connection.channel()
-    channel.queue_declare(queue='instagram')
-
-    def out(data: str):
-        channel.basic_publish(exchange='',
-                              routing_key='instagram',
-                              body=data)
-
-    return out
+        write_out_user_feed(user['pk'], user)
 
 
 if __name__ == "__main__":
@@ -96,12 +107,12 @@ if __name__ == "__main__":
         username = args.username
         password = args.password
 
-        out = wrap_rabbit_out(args.rabbit)
+        Rabbit = RabbitUnitOfWor(args.rabbit)
 
         login(username, password)
         while True:
             sleep_a_little()
-            feed(args.username, out)
+            feed(args.username)
 
     except Exception as e:
         logging.exception("An main error ocurred")
