@@ -15,31 +15,32 @@ parser = argparse.ArgumentParser(description="Download videos and photos for all
 parser.add_argument('-u', '--username', help="Account username", default=os.environ.get('USERNAME', None))
 parser.add_argument('-p', '--password', help="Account password", default=os.environ.get('PASSWORD', None))
 parser.add_argument('-r', '--rabbit', help="Rabbit host name", default=os.environ.get('RABBIT_HOST', 'localhost'))
+parser.add_argument('-c', '--channels', help="Channels name split by commas",
+                    default=os.environ.get('CHANNELS', 'instagram'))
 
 logging.basicConfig(filename='out/app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class RabbitUnitOfWor:
 
-    def __init__(self, host: str):
+    def __init__(self, host: str, channels: [str]):
         self._host = host
+        self._channels = channels
 
     def start(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(self._host))
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue='instagram')
-        self.channel.queue_declare(queue='imager')
+        for channel in self._channels:
+            self.channel.queue_declare(queue=channel)
 
     def finish(self):
         self.connection.close()
 
     def out(self, data: str):
-        self.channel.basic_publish(exchange='',
-                                   routing_key='instagram',
-                                   body=data)
-        self.channel.basic_publish(exchange='',
-                                   routing_key='imager',
-                                   body=data)
+        for channel in self._channels:
+            self.channel.basic_publish(exchange='',
+                                       routing_key=channel,
+                                       body=data)
 
 
 def sleep_a_little():
@@ -111,7 +112,7 @@ if __name__ == "__main__":
         username = args.username
         password = args.password
 
-        Rabbit = RabbitUnitOfWor(args.rabbit)
+        Rabbit = RabbitUnitOfWor(args.rabbit, args.channels.split(","))
 
         login(username, password)
         while True:
