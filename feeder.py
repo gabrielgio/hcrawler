@@ -28,6 +28,7 @@ class RabbitUnitOfWor:
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(self._host))
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue='instagram')
+        self.channel.queue_declare(queue='imager')
 
     def finish(self):
         self.connection.close()
@@ -35,6 +36,9 @@ class RabbitUnitOfWor:
     def out(self, data: str):
         self.channel.basic_publish(exchange='',
                                    routing_key='instagram',
+                                   body=data)
+        self.channel.basic_publish(exchange='',
+                                   routing_key='imager',
                                    body=data)
 
 
