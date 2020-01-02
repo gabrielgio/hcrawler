@@ -62,7 +62,8 @@ def get_user_following(username: str, next_max_id=None) -> List:
     success = bot.api.get_user_followings(user_id, next_max_id)
 
     if not success:
-        raise Exception("Something went wrong at `get_user_following`, you should take a look at it")
+        logging.error("Something went wrong at `get_user_following`, you should take a look at it")
+        return get_user_following(username)
 
     partial_feed = bot.api.last_json
 
@@ -81,7 +82,7 @@ def write_out_user_feed(user_id: str, user) -> List:
         sleep_a_little()
         success = bot.api.get_user_feed(user_id, next_max_id)
         if not success:
-            raise Exception("Something went wrong at `get_user_feed`, you should take a look at it")
+            logging.error("Something went wrong at `get_user_feed`, you should take a look at it")
 
         partial_feed = bot.api.last_json
 
