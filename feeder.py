@@ -18,7 +18,7 @@ parser.add_argument('-r', '--rabbit', help="Rabbit host name", default=os.enviro
 parser.add_argument('-c', '--channels', help="Channels name split by commas",
                     default=os.environ.get('CHANNELS', 'instagram'))
 
-logging.basicConfig(filename='out/app.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class RabbitUnitOfWor:
