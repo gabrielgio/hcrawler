@@ -8,17 +8,21 @@ import argparse
 import random
 import json
 import logging
+from graypy import GELFTCPHandler
 from instabot.bot.bot_get import get_user_id_from_username
+from instabot.api import api
 
 bot = Bot()
 parser = argparse.ArgumentParser(description="Download videos and photos for all followings")
 parser.add_argument('-u', '--username', help="Account username", default=os.environ.get('USERNAME', None))
 parser.add_argument('-p', '--password', help="Account password", default=os.environ.get('PASSWORD', None))
 parser.add_argument('-r', '--rabbit', help="Rabbit host name", default=os.environ.get('RABBIT_HOST', 'localhost'))
+parser.add_argument('-g', '--graylog', help="Rabbit host name", default=os.environ.get('GRAYLOG_HOST', 'localhost'))
 parser.add_argument('-c', '--channels', help="Channels name split by commas",
                     default=os.environ.get('CHANNELS', 'instagram'))
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
+logger = None
 
 
 class RabbitUnitOfWor:
@@ -62,7 +66,6 @@ def get_user_following(username: str, next_max_id=None) -> List:
     success = bot.api.get_user_followings(user_id, next_max_id)
 
     if not success:
-        logging.error("Something went wrong at `get_user_following`, you should take a look at it")
         return get_user_following(username)
 
     partial_feed = bot.api.last_json
@@ -82,7 +85,7 @@ def write_out_user_feed(user_id: str, user) -> List:
         sleep_a_little()
         success = bot.api.get_user_feed(user_id, next_max_id)
         if not success:
-            logging.error("Something went wrong at `get_user_feed`, you should take a look at it")
+            continue
 
         partial_feed = bot.api.last_json
 
@@ -92,6 +95,8 @@ def write_out_user_feed(user_id: str, user) -> List:
         for item in partial_feed['items']:
             Rabbit.out(json.dumps({"user": user,
                                    "post": item}))
+
+        logger.info(f"[POSTED] {len(partial_feed['item'])} posts of user {user['username']}")
         Rabbit.finish()
 
         if partial_feed.get('next_max_id', None) is None:
@@ -123,6 +128,9 @@ if __name__ == "__main__":
         args = parser.parse_args()
         username = args.username
         password = args.password
+        logger = logging.getLogger("instabot version: " + api.version)
+        handler = GELFTCPHandler(args.graylog, port=12202)
+        logger.addHandler(handler)
 
         Rabbit = RabbitUnitOfWor(args.rabbit, args.channels.split(","))
 
@@ -132,4 +140,4 @@ if __name__ == "__main__":
             feed(args.username)
 
     except Exception as e:
-        logging.exception("An main error ocurred")
+        logger.exception("An main error ocurred")
