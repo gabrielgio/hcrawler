@@ -96,7 +96,7 @@ def write_out_user_feed(user_id: str, user) -> List:
             Rabbit.out(json.dumps({"user": user,
                                    "post": item}))
 
-        logger.info(f"[POSTED] {len(partial_feed['item'])} posts of user {user['username']}")
+        logger.info(f"[POSTED] {len(partial_feed['items'])} posts of user {user['username']}")
         Rabbit.finish()
 
         if partial_feed.get('next_max_id', None) is None:

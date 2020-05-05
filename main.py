@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser(description="Download videos and photos for all
 parser.add_argument('-u', '--username', help="Account username", default=os.environ.get('USERNAME', None))
 parser.add_argument('-p', '--password', help="Account password", default=os.environ.get('PASSWORD', None))
 
+bot.download_stories()
+
 
 def login(username: str, password: str):
     bot.login(username=username, password=password)
@@ -33,10 +35,23 @@ def download_photos_and_videos(username, user_medias):
             bot.api.download_photo(media_id, None, media, folder)
 
 
+def download_stories(user_id: int, username: str):
+    images, videos = bot.get_user_stories(user_id)
+    folder = f"out/{username}"
+
+    for story_url in images:
+        filename = story_url.split("/")[-1].split(".")[0] + ".jpg"
+        bot.api.download_story(f"{folder}/{filename}", story_url, username)
+    for story_url in videos:
+        filename = story_url.split("/")[-1].split(".")[0] + ".mp4"
+        bot.api.download_story(f"{folder}/{filename}", story_url, username)
+
+
 def download_all_medias(user_id: str):
     username = bot.get_username_from_user_id(user_id)
-    medias = bot.get_total_user_medias(user_id)
-    download_photos_and_videos(username, medias)
+    # medias = bot.get_total_user_medias(user_id)
+    download_stories(user_id, username)
+    # download_photos_and_videos(username, medias)
 
 
 def run_crawler(username: str):
