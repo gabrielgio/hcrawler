@@ -108,7 +108,7 @@ def write_out_user_feed(user_id: str, user) -> List:
 
 def write_out_stories(user_id: str, user):
     bot.api.get_user_stories(user_id)
-    if bot.api.last_json['reel'] is not None and int(bot.api.last_json["reel"]["media_count"]) > 0:
+    if bot.api.last_json.get('reel', None) is not None and int(bot.api.last_json["reel"]["media_count"]) > 0:
         Rabbit.start()
         for item in bot.api.last_json["reel"]["items"]:
             Rabbit.out(json.dumps({"user": user,

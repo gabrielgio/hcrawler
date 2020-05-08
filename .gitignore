@@ -12,6 +12,6 @@ whitelist.txt
 
 log/
 out/
-venv/
+.venv/
 .idea/
 __pycache__/
