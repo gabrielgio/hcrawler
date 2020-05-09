@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 COPY main.py .
 COPY feeder.py .
 
-ENTRYPOINT python main.py
+ENTRYPOINT python feeder.py
